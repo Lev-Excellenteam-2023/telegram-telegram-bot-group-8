@@ -49,11 +49,12 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     return treatment_score
 
 
-def generate_doctor_report(feedbacks):
+def generate_doctor_report(chat_api: OpenAIChatAPI, feedbacks: list):
     """
     Generate a detailed report about the doctor based on provided feedback.
 
     Args:
+        chat (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
         feedbacks (list): A list of feedbacks, where each feedback is a list of tuples
                          containing questions and answers.
 
@@ -70,7 +71,5 @@ def generate_doctor_report(feedbacks):
         prompt += "\n"
 
     prompt += "Please provide a detailed report about the doctor considering the feedback provided above."
-
-    chat_api = OpenAIChatAPI()
-    response = asyncio.run(chat_api.generate_response(prompt))
-    return response
+    report = asyncio.run(chat_api.generate_response(prompt))
+    return report

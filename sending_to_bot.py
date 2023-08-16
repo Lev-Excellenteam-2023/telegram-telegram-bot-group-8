@@ -1,8 +1,9 @@
 import requests
 from flask import Flask, request, Response
-BASE_URL='https://api.telegram.org/bot'
-TOKEN ='6654263664:AAFPRwMwjGTTpSpD0Kz7BJiy9LINomD2EJY'
-TELEGRAM_INIT_WEBHOOK_URL = f'{BASE_URL}{TOKEN}/setWebhook?url=https://338a-2a02-6680-2107-137c-2071-2e7e-e900-3aa3.ngrok-free.app/message'
+
+
+
+TELEGRAM_INIT_WEBHOOK_URL = f'{BASE_URL}{TOKEN}/{SETWEBHOOK}/message'
 
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 questions = [r'How would you describe the dentist\'s demeanor and attitude towards you during the visit?',

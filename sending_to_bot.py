@@ -47,6 +47,8 @@ def send_next_question(chat_id):
     else:
         fill[chat_id] = False
         send_message(chat_id, "Thank you for answering all questions!")
+        return chat_id
+
 
 @app.route('/message', methods=["POST"])
 def handle_message():
@@ -73,3 +75,4 @@ def send_message(chat_id, text):
     requests.get(send_url, params=payload)
 
 app.run(port=5002)
+print(user_answers)

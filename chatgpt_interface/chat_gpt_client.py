@@ -47,3 +47,30 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     # Construct the final response
     treatment_score = f"Score: {score / len(questions_and_answers)}"
     return treatment_score
+
+
+def generate_doctor_report(feedbacks):
+    """
+    Generate a detailed report about the doctor based on provided feedback.
+
+    Args:
+        feedbacks (list): A list of feedbacks, where each feedback is a list of tuples
+                         containing questions and answers.
+
+    Returns:
+        str: A detailed report about the doctor based on the provided feedback.
+    """
+    prompt = "Generate a detailed report about the doctor based on the provided feedback:\n\n"
+
+    for i, feedback in enumerate(feedbacks, start=1):
+        prompt += f"Feedback {i}:\n"
+        for question, answer in feedback:
+            prompt += f"Question: {question}\n"
+            prompt += f"Answer: {answer}\n"
+        prompt += "\n"
+
+    prompt += "Please provide a detailed report about the doctor considering the feedback provided above."
+
+    chat_api = OpenAIChatAPI()
+    response = asyncio.run(chat_api.generate_response(prompt))
+    return response

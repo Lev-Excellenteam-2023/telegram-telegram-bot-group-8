@@ -2,14 +2,10 @@ import os
 import openai
 
 
-
-import os
-import openai
-
 class OpenAIChatAPI:
     def __init__(self):
         self.system_role = ""
-        openai.api_key = keys.OPENAI_API_KEY
+        openai.api_key = os.getenv("OPENAI_API_KEY")
 
     async def generate_response(self, prompt: str):
         completion = openai.Completion.create(
@@ -22,6 +18,3 @@ class OpenAIChatAPI:
 
     def set_system_role(self, role: str):
         self.system_role = role
-
-
-

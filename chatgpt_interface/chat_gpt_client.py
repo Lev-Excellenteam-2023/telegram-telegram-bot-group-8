@@ -28,7 +28,7 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
         questions_and_answers (list): A list of tuples, each containing a question and its corresponding answer.
 
     Returns:
-        str: A string representing the calculated scores in a specific format.
+        str: A double representing the calculated scores.
     """
     score = 0
     for question, answer in questions_and_answers:
@@ -45,7 +45,7 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
             score -= 10
 
     # Construct the final response
-    treatment_score = f"Score: {score / len(questions_and_answers)}"
+    treatment_score = score / len(questions_and_answers)
     return treatment_score
 
 

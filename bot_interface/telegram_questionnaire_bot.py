@@ -1,9 +1,10 @@
+import os
+
 import requests
 from flask import Flask, request, Response
-import keys
 from bot_interface.global_variables import chat_id_finish,name_of_doctor,user_answers,questions
 
-TELEGRAM_INIT_WEBHOOK_URL = f'{keys.BASE_URL}{keys.TOKEN}/{keys.SETWEBHOOK}/message'
+TELEGRAM_INIT_WEBHOOK_URL = f'{os.getenv("BASE_URL")}{os.getenv("TOKEN")}/{os.getenv("SETWEBHOOK")}/message'
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 intro_message=r'Hello there! We hope you\'re feeling well after your recent medical treatment. Your feedback matters a lot to us!\
@@ -74,7 +75,7 @@ def handle_message():
     return Response("success")
 
 def send_message(chat_id, text):
-    send_url = f'https://api.telegram.org/bot{keys.TOKEN}/sendMessage'
+    send_url = f'https://api.telegram.org/bot{os.getenv("TOKEN")}/sendMessage'
     payload = {'chat_id': chat_id, 'text': text}
     requests.get(send_url, params=payload)
 

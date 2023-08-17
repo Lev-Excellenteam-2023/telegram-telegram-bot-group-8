@@ -1,10 +1,11 @@
 import firebase_admin
 from firebase_admin import credentials
+import os
 from faker import Faker
 
-cred = credentials.Certificate("doctors-feedbacks-firebase-adminsdk-tgu9x-3a67938c9e.json")
+cred = credentials.Certificate(os.getenv("FIREBASE_JSON"))
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://doctors-feedbacks-default-rtdb.firebaseio.com'
+    'databaseURL': os.getenv("DATABASE_URL")
 })
 
 from firebase_admin import db
@@ -56,11 +57,11 @@ def get_doctor_score(first_name, last_name):
 
 
 # Generate and insert 80 doctors with different names
-fake = Faker()
-for _ in range(80):
-    first_name = fake.first_name()
-    last_name = fake.last_name()
-    insert_doctor(first_name, last_name)
+#fake = Faker()
+#for _ in range(80):
+ #   first_name = fake.first_name()
+  #  last_name = fake.last_name()
+   # insert_doctor(first_name, last_name)
 
 #print('New data key:', new_data_ref.key)
 

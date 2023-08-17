@@ -49,6 +49,42 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     return treatment_score
 
 
+async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
+    """
+    Calculates scores for doctor's behavior and professionalism based on patient feedback.
+
+    Args:
+        chat (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
+        questions_and_answers (list): A list of tuples, each containing a question and its corresponding answer.
+
+    Returns:
+        str: A comma-separated string of responses (positive/neutral/negative).
+    """
+    score = 0
+    responses = []
+    for question, answer in questions_and_answers:
+        responses.append("Question: " + question + " Answer: " + answer)
+
+    # Ask ChatGPT about relevance and polarity for all responses
+    combined_responses = ", ".join(responses)
+    prompt = f"Tell me what the patient's scores are for the doctor according to the following questions and answers. " \
+             f"Provide responses in the order: positive/neutral/negative for each question.\n\n" \
+             f"Questions and Answers:\n{combined_responses}\n"
+    response = chat.generate_response(prompt)
+
+    for ans_score in response.strip("/"):
+        if ans_score == "positive":
+            score += 10
+        elif ans_score == "neutral":
+            score += 5
+        elif ans_score == "negative":
+            score -= 10
+
+    # Construct the final response
+    treatment_score = score / len(questions_and_answers)
+    return treatment_score
+
+
 def generate_doctor_report(chat_api: OpenAIChatAPI, feedbacks: list):
     """
     Generate a detailed report about the doctor based on provided feedback.

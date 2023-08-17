@@ -56,11 +56,11 @@ def get_doctor_score(first_name, last_name):
 
 
 # Generate and insert 80 doctors with different names
-fake = Faker()
-for _ in range(80):
-    first_name = fake.first_name()
-    last_name = fake.last_name()
-    insert_doctor(first_name, last_name)
+#fake = Faker()
+#for _ in range(80):
+ #   first_name = fake.first_name()
+  #  last_name = fake.last_name()
+   # insert_doctor(first_name, last_name)
 
 #print('New data key:', new_data_ref.key)
 

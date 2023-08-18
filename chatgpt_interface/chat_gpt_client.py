@@ -1,5 +1,5 @@
 import asyncio
-from openai_api import OpenAIChatAPI
+from chatgpt_interface.openai_api  import OpenAIChatAPI
 
 
 async def is_answer_relevant(chat: OpenAIChatAPI, question: str, answer: str) -> bool:
@@ -14,42 +14,15 @@ async def is_answer_relevant(chat: OpenAIChatAPI, question: str, answer: str) ->
     Returns:
         bool: True if the answer is relevant, False otherwise.
     """
-    prompt = f"Please provide a concise response: Is the answer relevant? (Yes/No)\n\nQuestion: {question}\nAnswer: {answer}\n"
-    response = await chat.generate_response(prompt)
+    message = {"role": "system", "content": f"Please provide a concise response: Is the answer relevant? (Yes/No)\n\nQuestion: {question}\nAnswer: {answer}\n"}
+    response = await chat.generate_response([message])
     return response.lower() == 'yes'
 
 
-async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
-    """
-    Calculates scores for doctor's behavior and professionalism based on patient feedback.
-
-    Args:
-        chat (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
-        questions_and_answers (list): A list of tuples, each containing a question and its corresponding answer.
-
-    Returns:
-        str: A double representing the calculated scores.
-    """
-    score = 0
-    for question, answer in questions_and_answers:
-        # Ask ChatGPT about relevance and polarity
-        prompt = f"Tell me what the patient's score is for the doctor according to the question and answer below, " \
-                 f"notice to write in one word your opinion and just from the follow options (positive/negative/neutral) of the " \
-                 f"\n\nQuestion: {question}\nAnswer: {answer}\n"
-        response = chat.generate_response(prompt)
-        if response == "positive":
-            score += 10
-        elif response == "neutral":
-            score += 5
-        elif response == "negative":
-            score -= 10
-
-    # Construct the final response
-    treatment_score = score / len(questions_and_answers)
-    return treatment_score
 
 
-async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
+
+async def calculate_scores1(chat: OpenAIChatAPI, questions_and_answers):
     """
     Calculates scores for doctor's behavior and professionalism based on patient feedback.
 
@@ -62,7 +35,7 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     """
     score = 0
     responses = []
-    for question, answer in questions_and_answers:
+    for question, answer in questions_and_answers.items():
         responses.append("Question: " + question + " Answer: " + answer)
 
     # Ask ChatGPT about relevance and polarity for all responses
@@ -70,7 +43,7 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     prompt = f"Tell me what the patient's scores are for the doctor according to the following questions and answers. " \
              f"Provide responses in the order: positive/neutral/negative for each question.\n\n" \
              f"Questions and Answers:\n{combined_responses}\n"
-    response = chat.generate_response(prompt)
+    response = await chat.generate_response(prompt)
 
     for ans_score in response.strip("/"):
         if ans_score == "positive":
@@ -83,48 +56,40 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     # Construct the final response
     treatment_score = score / len(questions_and_answers)
     return treatment_score
-
-
-def generate_doctor_report(chat_api: OpenAIChatAPI, feedbacks: list):
+async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     """
-    Generate a detailed report about the doctor based on provided feedback.
-
-    Args:
-        chat_api (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
-        feedbacks (list): A list of feedbacks, where each feedback is a list of tuples
-                         containing questions and answers.
-
-    Returns:
-        str: A detailed report about the doctor based on the provided feedback.
-    """
-    prompt = "Generate a detailed report about the doctor based on the provided feedback:\n\n"
-
-    for i, feedback in enumerate(feedbacks, start=1):
-        prompt += f"Feedback {i}:\n"
-        for question, answer in feedback:
-            prompt += f"Question: {question}\n"
-            prompt += f"Answer: {answer}\n"
-        prompt += "\n"
-
-    prompt += "Please provide a detailed report about the doctor considering the feedback provided above."
-    report = asyncio.run(chat_api.generate_response(prompt))
-    return report
-
-
-async def generate_response_question(chat: OpenAIChatAPI, question: str, answer: str) -> str:
-    """
-    Generates a response question for a given answer to get more detailed information using the OpenAIChatAPI.
+    Calculates scores for doctor's behavior and professionalism based on patient feedback.
 
     Args:
         chat (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
-        question (str): The original question that was asked.
-        answer (str): The answer for which a response question needs to be generated.
+        questions_and_answers (list): A list of tuples, each containing a question and its corresponding answer.
 
     Returns:
-        str: The response question generated by the chat.
+        str: A string representing the calculated scores in a specific format.
     """
-    prompt = f"I asked the patient this question and received this answer:\n\nQuestion: {question}\nAnswer: {answer}\n\n" \
-             f"It is not detailed enough in my opinion. Can you create a response question for the answer " \
-             f"that will make the user give more information?"
-    response_question = await chat.generate_response(prompt)
-    return response_question
+    score = 0
+    messages=[]
+    questions_and_answers_string =''
+    for question, answer in questions_and_answers.items():
+        questions_and_answers_string+='question: '+question
+        questions_and_answers_string+='answer: '+answer
+        # Ask ChatGPT about relevance and polarity
+    prompt = f"Tell me what the patient's score is for the doctor according to the question and answer below,\
+notice to write in one word for each question your opinion and just from the follow options (positive/negative/neutral)\
+write it for each question in space between them .for example like that: positive negative neutral negative positive"
+    messages.append( {"role": "system", "content": prompt})
+    await chat.generate_response(messages)
+    messages.append({"role": "user", "content": questions_and_answers_string})
+    response = await chat.generate_response(messages)
+    responses=response.split()
+    for i in responses:
+        if i == "positive":
+            score += 10
+        elif i == "neutral":
+            score += 5
+        elif i == "negative":
+            score -= 10
+
+    # Construct the final response
+    treatment_score = score / len(questions_and_answers)
+    return treatment_score

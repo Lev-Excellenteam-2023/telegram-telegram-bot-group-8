@@ -2,7 +2,7 @@ import os
 
 import requests
 from flask import Flask, request, Response
-
+from bot_interface.global_variables import chat_id_finish,name_of_doctor,user_answers,questions
 
 TELEGRAM_INIT_WEBHOOK_URL = f'{os.getenv("BASE_URL")}{os.getenv("TOKEN")}/{os.getenv("SETWEBHOOK")}/message'
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)

@@ -1,9 +1,9 @@
 import chatgpt_interface.chat_gpt_client
 from chatgpt_interface.openai_api import OpenAIChatAPI
-from bot_interface import telegram_questionnaire_bot
 import asyncio
 import firebase.firebase
 import bot_interface.global_variables
+import bot_interface.telegram_questionnaire_bot
 
 async def main():
     openai_chat = OpenAIChatAPI()

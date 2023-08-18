@@ -81,7 +81,5 @@ def send_message(chat_id, text):
 
 
 
-app.run(port=5002)
-
-#if __name__=="__main__":
- #   main()
+def start_flask_server():
+    app.run(port=5002)

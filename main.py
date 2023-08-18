@@ -1,4 +1,5 @@
-
+import threading
+import chatgpt_interface.chat_gpt_client
 from chatgpt_interface.openai_api import OpenAIChatAPI
 import asyncio
 import firebase.firebase
@@ -31,7 +32,13 @@ async def main():
 
 
 
-
-
 if __name__ == "__main__":
+    # Create and start the Flask server thread
+    server_thread = threading.Thread(target= bot_interface.telegram_questionnaire_bot.start_flask_server)
+    server_thread.start()
+
+    # Run the main function in the asyncio event loop
     asyncio.run(main())
+
+    # Wait for the server thread to finish
+    server_thread.join()

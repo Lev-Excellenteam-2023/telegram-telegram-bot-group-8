@@ -20,7 +20,7 @@ async def is_answer_relevant(chat, question: str, answer: str) -> bool:
     return response.lower() == 'yes'
 
 
-async def calculate_scores(chat, questions_and_answers):
+async def calculate_scores1(chat, questions_and_answers):
     """
     Calculates scores for doctor's behavior and professionalism based on patient feedback.
 
@@ -50,7 +50,7 @@ async def calculate_scores(chat, questions_and_answers):
     return treatment_score
 
 
-async def calculate_scores(chat, questions_and_answers):
+async def calculate_scores2(chat, questions_and_answers):
     """
     Calculates scores for doctor's behavior and professionalism based on patient feedback.
 
@@ -85,6 +85,43 @@ async def calculate_scores(chat, questions_and_answers):
     treatment_score = score / len(questions_and_answers)
     return treatment_score
 
+async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
+    """
+    Calculates scores for doctor's behavior and professionalism based on patient feedback.
+
+    Args:
+        chat (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
+        questions_and_answers (list): A list of tuples, each containing a question and its corresponding answer.
+
+    Returns:
+        str: A string representing the calculated scores in a specific format.
+    """
+    score = 0
+    messages=[]
+    questions_and_answers_string =''
+    for question, answer in questions_and_answers.items():
+        questions_and_answers_string+='question: '+question
+        questions_and_answers_string+='answer: '+answer
+        # Ask ChatGPT about relevance and polarity
+    prompt = f"Tell me what the patient's score is for the doctor according to the question and answer below,\
+notice to write in one word for each question your opinion and just from the follow options (positive/negative/neutral)\
+write it for each question in space between them .for example like that: positive negative neutral negative positive"
+    messages.append( {"role": "system", "content": prompt})
+    await chat.generate_response(messages)
+    messages.append({"role": "user", "content": questions_and_answers_string})
+    response = await chat.generate_response(messages)
+    responses=response.split()
+    for i in responses:
+        if i == "positive":
+            score += 10
+        elif i == "neutral":
+            score += 5
+        elif i == "negative":
+            score -= 0
+
+    # Construct the final response
+    treatment_score = score / len(questions_and_answers)
+    return treatment_score
 
 def generate_doctor_report(chat_api, feedbacks: list):
     """

@@ -51,7 +51,7 @@ async def calculate_scores1(chat: OpenAIChatAPI, questions_and_answers):
         elif ans_score == "neutral":
             score += 5
         elif ans_score == "negative":
-            score -= 10
+            score -= 0
 
     # Construct the final response
     treatment_score = score / len(questions_and_answers)
@@ -88,7 +88,7 @@ write it for each question in space between them .for example like that: positiv
         elif i == "neutral":
             score += 5
         elif i == "negative":
-            score -= 10
+            score -= 0
 
     # Construct the final response
     treatment_score = score / len(questions_and_answers)

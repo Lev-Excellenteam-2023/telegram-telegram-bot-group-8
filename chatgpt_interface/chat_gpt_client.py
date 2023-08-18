@@ -1,8 +1,9 @@
 import asyncio
-from openai_api import OpenAIChatAPI
 
 
-async def is_answer_relevant(chat: OpenAIChatAPI, question: str, answer: str) -> bool:
+
+
+async def is_answer_relevant(chat, question: str, answer: str) -> bool:
     """
     Determines whether an answer to a given question is relevant using the OpenAIChatAPI.
 
@@ -19,7 +20,7 @@ async def is_answer_relevant(chat: OpenAIChatAPI, question: str, answer: str) ->
     return response.lower() == 'yes'
 
 
-async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
+async def calculate_scores(chat, questions_and_answers):
     """
     Calculates scores for doctor's behavior and professionalism based on patient feedback.
 
@@ -49,7 +50,7 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     return treatment_score
 
 
-async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
+async def calculate_scores(chat, questions_and_answers):
     """
     Calculates scores for doctor's behavior and professionalism based on patient feedback.
 
@@ -85,7 +86,7 @@ async def calculate_scores(chat: OpenAIChatAPI, questions_and_answers):
     return treatment_score
 
 
-def generate_doctor_report(chat_api: OpenAIChatAPI, feedbacks: list):
+def generate_doctor_report(chat_api, feedbacks: list):
     """
     Generate a detailed report about the doctor based on provided feedback.
 
@@ -111,7 +112,7 @@ def generate_doctor_report(chat_api: OpenAIChatAPI, feedbacks: list):
     return report
 
 
-async def generate_response_question(chat: OpenAIChatAPI, question: str, answer: str) -> str:
+async def generate_response_question(chat, question: str, answer: str) -> str:
     """
     Generates a response question for a given answer to get more detailed information using the OpenAIChatAPI.
 

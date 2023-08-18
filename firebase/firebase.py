@@ -64,4 +64,3 @@ def get_doctor_score(first_name, last_name):
    # insert_doctor(first_name, last_name)
 
 #print('New data key:', new_data_ref.key)
-

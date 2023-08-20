@@ -90,6 +90,18 @@ def get_feedbacks_for_doctor(first_name, last_name):
 
     return feedbacks
 
+
+def get_all_doctors():
+    doctors_ref = ref.child('doctors')
+    doctors_list = doctors_ref.get()
+
+    all_doctors = []
+    if doctors_list:
+        for doctor_id, doctor_data in doctors_list.items():
+            all_doctors.append(doctor_data)
+
+    return all_doctors
+
 # Generate and insert 80 doctors with different names
 # fake = Faker()
 # for _ in range(80):

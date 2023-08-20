@@ -78,6 +78,32 @@ def send_doctor_report(chat_id, doctor_first_name, doctor_last_name):
         send_message(chat_id, "No feedbacks found for Doctor {} {}.".format(doctor_first_name, doctor_last_name))
 
 
+def get_best_doctors(chat_id):
+    # Get the list of doctors from your database
+    doctors_list = firebase.firebase.get_all_doctors()  # Replace with your database retrieval method
+
+    if not doctors_list:
+        send_message(chat_id, "No doctors found.")
+        return
+
+    best_doctors = []
+    for doctor_data in doctors_list:
+        doctor_score = doctor_data.get('score', 0)
+        if doctor_score >= 9:
+            best_doctors.append(doctor_data)
+
+    if not best_doctors:
+        send_message(chat_id, "No doctors with a score of 9 or higher found.")
+        return
+
+    response = "Doctors with the best feedback:\n\n"
+    for doctor in best_doctors:
+        doctor_name = f"{doctor.get('first name')} {doctor.get('last name')}"
+        response += f"- {doctor_name}\n"
+
+    send_message(chat_id, response)
+
+
 @app.route('/message', methods=["POST"])
 def handle_message():
     global fill
@@ -118,6 +144,8 @@ def handle_message():
         else:
             response = "Invalid command. Usage: /generate_report <Doctor's First Name> <Doctor's Last Name>"
             send_message(chat_id, response)
+    elif message_text == '/best_doctors':
+        get_best_doctors(chat_id)
 
     else:
         response = "Unknown command. Please use /start to begin."

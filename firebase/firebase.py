@@ -3,7 +3,8 @@ from firebase_admin import credentials
 import os
 from faker import Faker
 
-cred = credentials.Certificate(os.getenv("FIREBASE_JSON"))
+cred = credentials.Certificate(
+    r"C:\Networks\Excellenteam\telegram_bot_project\telegram-telegram-bot-group-8\doctors-feedbacks-firebase-adminsdk-tgu9x-3a67938c9e.json")
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv("DATABASE_URL")
 })
@@ -66,6 +67,28 @@ def get_doctor_score(first_name, last_name):
         return doctor_data.get('score', 0)
     else:
         return None
+
+
+def get_feedbacks_for_doctor(first_name, last_name):
+    # Initialize the Firebase Admin SDK and database reference
+    # (Make sure you've already initialized the SDK and have the database reference 'ref' available)
+
+    # Query the doctor based on first_name and last_name
+    query = ref.child('doctors').order_by_child('first name').equal_to(first_name).get()
+    matching_doctors = [doctor_id for doctor_id, doctor_data in query.items() if
+                        doctor_data.get('last name') == last_name]
+
+    feedbacks = []
+
+    if matching_doctors:
+        doctor_id = matching_doctors[0]  # Assume there's only one doctor with the given name
+        feedbacks_ref = ref.child('doctors').child(doctor_id).child('feedbacks')
+
+        # Iterate through the feedbacks and retrieve the feedback data
+        for feedback_id, feedback_data in feedbacks_ref.get().items():
+            feedbacks.append(feedback_data.get('answers', {}))
+
+    return feedbacks
 
 # Generate and insert 80 doctors with different names
 # fake = Faker()

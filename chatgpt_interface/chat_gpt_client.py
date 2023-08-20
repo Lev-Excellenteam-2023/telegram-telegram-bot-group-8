@@ -30,11 +30,11 @@ async def calculate_scores(chat, questions_and_answers):
         str: A string representing the calculated scores in a specific format.
     """
     score = 0
-    messages=[]
+    messages = []
     questions_and_answers_string = ''
     for question, answer in questions_and_answers.items():
-        questions_and_answers_string += 'question: '+question
-        questions_and_answers_string += 'answer: '+answer
+        questions_and_answers_string += 'question: ' + question
+        questions_and_answers_string += 'answer: ' + answer
         # Ask ChatGPT about relevance and polarity
     prompt = f"Tell me what the patient's score is for the doctor according to the question and answer below,\
 notice to write in one word for each question your opinion and just from the follow options (positive/negative/neutral)\
@@ -56,29 +56,35 @@ write it for each question in space between them .for example like that: positiv
     treatment_score = score / len(questions_and_answers)
     return treatment_score
 
-def generate_doctor_report(chat_api, feedbacks: list):
+
+def generate_doctor_report(chat_api, feedbacks: list, questions: list):
     """
     Generate a detailed report about the doctor based on provided feedback.
 
     Args:
         chat_api (OpenAIChatAPI): An instance of the OpenAIChatAPI class for communication with OpenAI.
-        feedbacks (list): A list of feedbacks, where each feedback is a list of tuples
-                         containing questions and answers.
+        feedbacks (list): A list of feedbacks, where each feedback is a dictionary of dictionaries
+                         containing  answers.
+        questions (list): A list of questions that were asked to patients.
 
     Returns:
         str: A detailed report about the doctor based on the provided feedback.
     """
+    messages = []
     prompt = "Generate a detailed report about the doctor based on the provided feedback:\n\n"
-
+    messages.append({"role": "system", "content": prompt})
+    chat_api.generate_response(messages)
+    prompt = " "
     for i, feedback in enumerate(feedbacks, start=1):
         prompt += f"Feedback {i}:\n"
-        for question, answer in feedback:
-            prompt += f"Question: {question}\n"
-            prompt += f"Answer: {answer}\n"
+        for j, (question, answer) in enumerate(zip(questions, feedback.values()), start=1):
+            prompt += f"{j}. {question}\n"
+            prompt += f"   Answer: {answer}\n"
         prompt += "\n"
 
     prompt += "Please provide a detailed report about the doctor considering the feedback provided above."
-    report = asyncio.run(chat_api.generate_response(prompt))
+    messages.append({"role": "user", "content": prompt})
+    report = chat_api.generate_response(messages)
     return report
 
 

@@ -4,8 +4,13 @@ import requests
 import firebase.firebase
 from flask import Flask, request, Response
 from bot_interface.global_variables import chat_id_finish, name_of_doctor, user_answers, questions
+import chatgpt_interface.chat_gpt_client
+from chatgpt_interface.openai_api import SyncOpenAIChatAPI
 
-TELEGRAM_INIT_WEBHOOK_URL = f'{os.getenv("BASE_URL")}{os.getenv("TOKEN")}/{os.getenv("SETWEBHOOK")}/message'
+openai_chat = SyncOpenAIChatAPI()
+
+TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://9115-2-54-50-39.ngrok-free.app/message'.format(
+    '6522625279:AAFUI73YuVL079FfCw0pKAGy0ir9uuCDu_w')
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 intro_message = r'Hello there! We hope you\'re feeling well after your recent medical treatment. Your feedback matters a lot to us!\
@@ -48,6 +53,7 @@ def send_next_question(chat_id):
         if chat_id not in registered_users:
             registered_users.append(chat_id)
 
+
 def send_doctor_feedbacks(chat_id, doctor_first_name, doctor_last_name):
     feedbacks = firebase.firebase.get_feedbacks_for_doctor(doctor_first_name, doctor_last_name)
     if feedbacks:
@@ -58,6 +64,19 @@ def send_doctor_feedbacks(chat_id, doctor_first_name, doctor_last_name):
         send_message(chat_id, response)
     else:
         send_message(chat_id, "No feedbacks found for Doctor {} {}.".format(doctor_first_name, doctor_last_name))
+
+
+def send_doctor_report(chat_id, doctor_first_name, doctor_last_name):
+    # Fetch feedbacks for the specified doctor using your database interaction methods
+    feedbacks = firebase.firebase.get_feedbacks_for_doctor(doctor_first_name, doctor_last_name)
+
+    if feedbacks:
+        # Calculate scores and generate detailed report using your existing functions
+        report = chatgpt_interface.chat_gpt_client.generate_doctor_report(openai_chat, feedbacks, questions)
+        send_message(chat_id, report)
+    else:
+        send_message(chat_id, "No feedbacks found for Doctor {} {}.".format(doctor_first_name, doctor_last_name))
+
 
 @app.route('/message', methods=["POST"])
 def handle_message():
@@ -82,14 +101,24 @@ def handle_message():
     elif chat_id in fill and fill[chat_id] and current_question_index[chat_id] - 1 < len(questions):
         user_answers[chat_id][current_question_index[chat_id] - 1] = message_text
         send_next_question(chat_id)
-    elif message_text.startswith('/view_feedback') and chat_id in registered_users:
+    elif chat_id in registered_users:
+        if message_text.startswith('/view_feedback'):
+            params = message_text.split()[1:]
+            if len(params) == 2:
+                doctor_first_name, doctor_last_name = params
+                send_doctor_feedbacks(chat_id, doctor_first_name, doctor_last_name)
+            else:
+                response = "Invalid command. Usage: /view_feedbacks <Doctor's First Name> <Doctor's Last Name>"
+                send_message(chat_id, response)
+    elif message_text.startswith('/generate_report'):
         params = message_text.split()[1:]
         if len(params) == 2:
             doctor_first_name, doctor_last_name = params
-            send_doctor_feedbacks(chat_id, doctor_first_name, doctor_last_name)
+            send_doctor_report(chat_id, doctor_first_name, doctor_last_name)
         else:
-            response = "Invalid command. Usage: /feedback <Doctor's First Name> <Doctor's Last Name>"
+            response = "Invalid command. Usage: /generate_report <Doctor's First Name> <Doctor's Last Name>"
             send_message(chat_id, response)
+
     else:
         response = "Unknown command. Please use /start to begin."
         send_message(chat_id, response)
@@ -98,7 +127,7 @@ def handle_message():
 
 
 def send_message(chat_id, text):
-    send_url = f'https://api.telegram.org/bot{os.getenv("TOKEN")}/sendMessage'
+    send_url = 'https://api.telegram.org/bot{}/sendMessage'.format('6522625279:AAFUI73YuVL079FfCw0pKAGy0ir9uuCDu_w')
     payload = {'chat_id': chat_id, 'text': text}
     requests.get(send_url, params=payload)
 

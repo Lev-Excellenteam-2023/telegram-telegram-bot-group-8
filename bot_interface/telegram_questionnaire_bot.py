@@ -1,6 +1,7 @@
 import os
 
 import requests
+import firebase.firebase
 from flask import Flask, request, Response
 from bot_interface.global_variables import chat_id_finish, name_of_doctor, user_answers, questions
 
@@ -47,6 +48,16 @@ def send_next_question(chat_id):
         if chat_id not in registered_users:
             registered_users.append(chat_id)
 
+def send_doctor_feedbacks(chat_id, doctor_first_name, doctor_last_name):
+    feedbacks = firebase.firebase.get_feedbacks_for_doctor(doctor_first_name, doctor_last_name)
+    if feedbacks:
+        response = "Feedbacks for Doctor {} {}:\n\n".format(doctor_first_name, doctor_last_name)
+        for feedback in feedbacks:
+            response += "\n".join(["- " + answer for answer in feedback.values()])
+            response += "\n\n"
+        send_message(chat_id, response)
+    else:
+        send_message(chat_id, "No feedbacks found for Doctor {} {}.".format(doctor_first_name, doctor_last_name))
 
 @app.route('/message', methods=["POST"])
 def handle_message():
@@ -71,6 +82,14 @@ def handle_message():
     elif chat_id in fill and fill[chat_id] and current_question_index[chat_id] - 1 < len(questions):
         user_answers[chat_id][current_question_index[chat_id] - 1] = message_text
         send_next_question(chat_id)
+    elif message_text.startswith('/view_feedback') and chat_id in registered_users:
+        params = message_text.split()[1:]
+        if len(params) == 2:
+            doctor_first_name, doctor_last_name = params
+            send_doctor_feedbacks(chat_id, doctor_first_name, doctor_last_name)
+        else:
+            response = "Invalid command. Usage: /feedback <Doctor's First Name> <Doctor's Last Name>"
+            send_message(chat_id, response)
     else:
         response = "Unknown command. Please use /start to begin."
         send_message(chat_id, response)

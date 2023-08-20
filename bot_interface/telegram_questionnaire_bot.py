@@ -1,5 +1,5 @@
 import os
-
+import random
 import requests
 import firebase.firebase
 from flask import Flask, request, Response
@@ -9,8 +9,7 @@ from chatgpt_interface.openai_api import SyncOpenAIChatAPI
 
 openai_chat = SyncOpenAIChatAPI()
 
-TELEGRAM_INIT_WEBHOOK_URL = 'https://api.telegram.org/bot{}/setWebhook?url=https://9115-2-54-50-39.ngrok-free.app/message'.format(
-    '6522625279:AAFUI73YuVL079FfCw0pKAGy0ir9uuCDu_w')
+TELEGRAM_INIT_WEBHOOK_URL = f'{os.getenv("BASE_URL")}{os.getenv("TOKEN")}/{os.getenv("SETWEBHOOK")}/message'
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 intro_message = r'Hello there! We hope you\'re feeling well after your recent medical treatment. Your feedback matters a lot to us!\
@@ -24,6 +23,8 @@ fill = {}
 current_question_index = {}
 if_in_name_of_doctor = {}
 registered_users = []
+if_in_short_feedback = {}
+
 app = Flask(__name__)
 
 
@@ -104,6 +105,16 @@ def get_best_doctors(chat_id):
     send_message(chat_id, response)
 
 
+def send_random_question(chat_id):
+    random_question_index = random.randint(0, len(questions) - 1)
+    random_question = questions[random_question_index]
+    send_message(chat_id, random_question)
+    user_answers[chat_id] = {random_question: None}
+    current_question_index[chat_id] = random_question_index
+    if_in_short_feedback[chat_id] = True
+    send_message(chat_id, "Please provide your answer to the question.")
+
+
 @app.route('/message', methods=["POST"])
 def handle_message():
     global fill
@@ -136,16 +147,31 @@ def handle_message():
             else:
                 response = "Invalid command. Usage: /view_feedbacks <Doctor's First Name> <Doctor's Last Name>"
                 send_message(chat_id, response)
-    elif message_text.startswith('/generate_report'):
-        params = message_text.split()[1:]
-        if len(params) == 2:
-            doctor_first_name, doctor_last_name = params
-            send_doctor_report(chat_id, doctor_first_name, doctor_last_name)
-        else:
-            response = "Invalid command. Usage: /generate_report <Doctor's First Name> <Doctor's Last Name>"
-            send_message(chat_id, response)
-    elif message_text == '/best_doctors':
-        get_best_doctors(chat_id)
+        elif message_text.startswith('/generate_report'):
+            params = message_text.split()[1:]
+            if len(params) == 2:
+                doctor_first_name, doctor_last_name = params
+                send_doctor_report(chat_id, doctor_first_name, doctor_last_name)
+            else:
+                response = "Invalid command. Usage: /generate_report <Doctor's First Name> <Doctor's Last Name>"
+                send_message(chat_id, response)
+        elif message_text == '/best_doctors':
+            get_best_doctors(chat_id)
+    if message_text == '/short_feedback':
+        send_random_question(chat_id)
+    elif chat_id in if_in_short_feedback and if_in_short_feedback[chat_id]:
+        question = questions[current_question_index[chat_id]]
+        user_answer = message_text.strip()
+        # Check if the answer is relevant
+        if chatgpt_interface.chat_gpt_client.is_answer_relevant(openai_chat, question, user_answer):
+            if len(user_answer.split()) < 3:
+                # Ask for more details
+                response = chatgpt_interface.chat_gpt_client.generate_response_question(openai_chat, question, user_answer)
+                send_message(chat_id, response)
+            else:
+                user_answers[chat_id] = {question: user_answer}
+                send_message(chat_id, "Thank you for your answer!")
+                if_in_short_feedback[chat_id] = False
 
     else:
         response = "Unknown command. Please use /start to begin."
@@ -155,7 +181,7 @@ def handle_message():
 
 
 def send_message(chat_id, text):
-    send_url = 'https://api.telegram.org/bot{}/sendMessage'.format('6522625279:AAFUI73YuVL079FfCw0pKAGy0ir9uuCDu_w')
+    send_url = f'https://api.telegram.org/bot{os.getenv("TOKEN")}/sendMessage'
     payload = {'chat_id': chat_id, 'text': text}
     requests.get(send_url, params=payload)
 

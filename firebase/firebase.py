@@ -1,15 +1,13 @@
 import firebase_admin
 from firebase_admin import credentials
 import os
+from firebase_admin import db
 from faker import Faker
 
-cred = credentials.Certificate(
-    r"C:\Networks\Excellenteam\telegram_bot_project\telegram-telegram-bot-group-8\doctors-feedbacks-firebase-adminsdk-tgu9x-3a67938c9e.json")
+cred = credentials.Certificate(os.getenv("FIREBASE_JSON"))
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.getenv("DATABASE_URL")
 })
-
-from firebase_admin import db
 
 # Reference to the root of your database
 ref = db.reference('/')
